@@ -6,6 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class AddTodos extends StatefulWidget{
+  final Map? todo;
+  @override
+  AddTodos({
+    super.key,
+    this.todo
+  });
+
   @override
   _AddTodosState createState()=> _AddTodosState();
 }
@@ -13,11 +20,27 @@ class _AddTodosState extends State<AddTodos>{
   TextEditingController titleCont = TextEditingController();
   TextEditingController desCont = TextEditingController();
   bool isSubmiting = false;
+  bool isEdit = false;
+
+  void initState(){
+    final todo = widget.todo;
+    if(todo != null){
+      isEdit = true;
+      titleCont.text = todo['title'];
+      desCont.text = todo['description'];
+      print(todo['_id']);
+
+    }
+  }
+
   @override
   Widget build(BuildContext context){
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Add Todos', style: TextStyle(
+        title: Text(
+          isEdit == true ? 'Edit Todo' :
+            'Add Todos',
+            style: TextStyle(
             fontSize: 24,
             color: Colors.white)),
         backgroundColor: Colors.purple,
@@ -41,8 +64,12 @@ class _AddTodosState extends State<AddTodos>{
                         borderRadius: BorderRadius.circular(10),
                       )
                   ),
-                  child: const Text('Submit', style: TextStyle(fontSize: 22, color: Colors.white)),
+                  child: Text(
+                      isEdit == true ? 'Update' : 'Submit',
+                      style: TextStyle(fontSize: 22, color: Colors.white)),
                   onPressed: (){
+                    isEdit == true ?
+                        editTodo() :
                     submitTodo();
                   }
               )
@@ -58,6 +85,42 @@ class _AddTodosState extends State<AddTodos>{
         )
       )
     );
+  }
+
+  Future<void> editTodo() async{
+    final String title = titleCont.text;
+    final String des = desCont.text;
+    final todo = widget.todo;
+    late final id;
+    if(todo != null){
+      id = todo['_id'];
+    }
+    setState((){
+      isSubmiting =true;
+    });
+    final body = {
+      "title": title,
+      "description": des,
+      "is_completed": false
+    };
+
+    final url = 'https://api.nstack.in/v1/todos/$id';
+    final uri = Uri.parse(url);
+    final response = await http.put(
+        uri,
+        body: jsonEncode(body),
+      headers: {
+          'Content-Type': 'application/json'
+      }
+    );
+    if(response.statusCode == 200){
+      snackMessage('Updated!', Colors.purple);
+      setState((){
+        isSubmiting = false;
+      });
+    }else{
+      snackMessage('Faild to update!', Colors.red);
+    }
   }
 
   Future<void> submitTodo()async{

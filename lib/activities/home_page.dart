@@ -58,7 +58,7 @@ class _HomePageState extends State<HomePage>{
                       trailing: PopupMenuButton(
                         onSelected: (value){
                           if(value == 'edit'){
-
+                            editData(todo);
                           }else if(value == 'delete'){
                             deleteById(id);
                           }
@@ -93,6 +93,15 @@ class _HomePageState extends State<HomePage>{
   Future<void> floatingButton() async{
     await Navigator.push(context,
       MaterialPageRoute(builder: (context)=>AddTodos())
+    );
+    setState((){
+      isLoading = true;
+    });
+    todosFetching();
+  }
+  Future<void> editData(Map todo)async{
+    await Navigator.push(context,
+      MaterialPageRoute(builder: (context)=>AddTodos(todo: todo))
     );
     setState((){
       isLoading = true;
