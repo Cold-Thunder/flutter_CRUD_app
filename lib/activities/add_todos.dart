@@ -12,7 +12,7 @@ class AddTodos extends StatefulWidget{
 class _AddTodosState extends State<AddTodos>{
   TextEditingController titleCont = TextEditingController();
   TextEditingController desCont = TextEditingController();
-  bool isSubmiting = true;
+  bool isSubmiting = false;
   @override
   Widget build(BuildContext context){
     return Scaffold(
@@ -63,7 +63,9 @@ class _AddTodosState extends State<AddTodos>{
   Future<void> submitTodo()async{
     final String title = titleCont.text;
     final String des = desCont.text;
-
+    setState(() {
+      isSubmiting = true;
+    });
     final body = {
       "title": title,
       "description": des,

@@ -39,7 +39,8 @@ class _HomePageState extends State<HomePage>{
                   itemBuilder: (context, index){
                     final todo = todos[index] as Map;
                     final id = todo['_id'] as String;
-                    return ListTile(
+                    return
+                      ListTile(
                         leading: CircleAvatar(
                             radius: 20,
                             backgroundColor: Colors.purple,
@@ -59,7 +60,7 @@ class _HomePageState extends State<HomePage>{
                           if(value == 'edit'){
 
                           }else if(value == 'delete'){
-                            deleteBytId(id);
+                            deleteById(id);
                           }
                         },
                         itemBuilder: (context){
@@ -89,35 +90,44 @@ class _HomePageState extends State<HomePage>{
       )
     );
   }
-  void floatingButton(){
-    Navigator.push(context,
+  Future<void> floatingButton() async{
+    await Navigator.push(context,
       MaterialPageRoute(builder: (context)=>AddTodos())
     );
+    setState((){
+      isLoading = true;
+    });
+    todosFetching();
   }
-  deleteBytId(String id){
-      return AlertDialog(
-        title: Text('Do you want to delete?'),
-        titleTextStyle: TextStyle(
-          fontSize: 22,
-          color: Colors.white
-        ),
-        actions:[
-          TextButton(
-            onPressed: (){
-              Navigator.pop(context);
-            },
-            child: Text('No', style: TextStyle(fontSize: 21, color: Colors.blue)),
-          ),
-          TextButton(
-            onPressed: (){
-              delete(id);
-              Navigator.pop(context);
-            },
-            child: Text('Yes', style: TextStyle(fontSize: 21, color: Colors.red))
-          )
-        ]
-      );
 
+  deleteById(String id){
+      showDialog(
+        context: context,
+        builder:(context){
+          return AlertDialog(
+            backgroundColor: Colors.white,
+              title: const Text('Do you want to delete?'),
+              titleTextStyle: const TextStyle(
+                  fontSize: 22,
+                  color: Colors.black
+              ),
+              actions:[
+                TextButton(
+                  onPressed: (){
+                    Navigator.pop(context);
+                  },
+                  child:const Text('No', style: TextStyle(fontSize: 21, color: Colors.blue)),
+                ),
+                TextButton(
+                    onPressed: (){
+                      delete(id);
+                    },
+                    child:const Text('Yes', style: TextStyle(fontSize: 21, color: Colors.red))
+                )
+              ]
+          );
+        }
+      );
   }
 
   Future<void> todosFetching()async{
@@ -146,5 +156,6 @@ class _HomePageState extends State<HomePage>{
         todos = filtered;
       });
     }
+    Navigator.pop(context);
   }
 }
