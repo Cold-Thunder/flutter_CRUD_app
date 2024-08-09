@@ -12,6 +12,7 @@ class AddTodos extends StatefulWidget{
 class _AddTodosState extends State<AddTodos>{
   TextEditingController titleCont = TextEditingController();
   TextEditingController desCont = TextEditingController();
+  bool isSubmiting = true;
   @override
   Widget build(BuildContext context){
     return Scaffold(
@@ -45,6 +46,13 @@ class _AddTodosState extends State<AddTodos>{
                     submitTodo();
                   }
               )
+            ),
+            Visibility(
+              visible: isSubmiting,
+                child: CircularProgressIndicator(
+                  color: Colors.purple
+                ),
+              replacement: Container()
             )
           ]
         )
@@ -74,6 +82,9 @@ class _AddTodosState extends State<AddTodos>{
       snackMessage('Successfully added!', Colors.purple);
       titleCont.clear();
       desCont.clear();
+      setState((){
+        isSubmiting = false;
+      });
     }else{
       snackMessage('Failed to add!', Colors.purple);
     }

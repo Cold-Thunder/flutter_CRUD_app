@@ -10,6 +10,7 @@ class HomePage extends StatefulWidget{
   _HomePageState createState()=> _HomePageState();
 }
 class _HomePageState extends State<HomePage>{
+  bool isLoading = true;
   List todos = [];
   @override
   void initState(){
@@ -23,13 +24,21 @@ class _HomePageState extends State<HomePage>{
         title: const Text('Home', style: TextStyle(fontSize: 24, color: Colors.white)),
         backgroundColor: Colors.purple
       ),
-      body:RefreshIndicator(
+      body:Visibility(
+        visible: isLoading,
+          child: Center(
+            child: CircularProgressIndicator(
+              color: Colors.purple
+            )
+        ),
+      replacement: RefreshIndicator(
           onRefresh: todosFetching,
           child: SafeArea(
               child: ListView.builder(
                   itemCount: todos.length,
                   itemBuilder: (context, index){
                     final todo = todos[index] as Map;
+                    final id = todo['_id'] as String;
                     return ListTile(
                         leading: CircleAvatar(
                             radius: 20,
@@ -44,12 +53,33 @@ class _HomePageState extends State<HomePage>{
                         subtitleTextStyle: TextStyle(
                             fontSize: 16,
                             color: Colors.white
-                        )
+                        ),
+                      trailing: PopupMenuButton(
+                        onSelected: (value){
+                          if(value == 'edit'){
+
+                          }else if(value == 'delete'){
+                            deleteBytId(id);
+                          }
+                        },
+                        itemBuilder: (context){
+                          return [
+                            PopupMenuItem(
+                              child: Text('Edit', style: TextStyle(fontSize: 20)),
+                              value: 'edit'
+                            ),
+                            PopupMenuItem(
+                              child: Text('Delete', style: TextStyle(fontSize: 20)),
+                              value: 'delete'
+                            )
+                          ];
+                        }
+                      )
                     );
                   }
               )
           )
-      ),
+      )),
       floatingActionButton: FloatingActionButton.extended(
           onPressed: (){
             floatingButton();
@@ -64,6 +94,32 @@ class _HomePageState extends State<HomePage>{
       MaterialPageRoute(builder: (context)=>AddTodos())
     );
   }
+  deleteBytId(String id){
+      return AlertDialog(
+        title: Text('Do you want to delete?'),
+        titleTextStyle: TextStyle(
+          fontSize: 22,
+          color: Colors.white
+        ),
+        actions:[
+          TextButton(
+            onPressed: (){
+              Navigator.pop(context);
+            },
+            child: Text('No', style: TextStyle(fontSize: 21, color: Colors.blue)),
+          ),
+          TextButton(
+            onPressed: (){
+              delete(id);
+              Navigator.pop(context);
+            },
+            child: Text('Yes', style: TextStyle(fontSize: 21, color: Colors.red))
+          )
+        ]
+      );
+
+  }
+
   Future<void> todosFetching()async{
     final url = 'https://api.nstack.in/v1/todos?page=1&limit=10';
     final uri = Uri.parse(url);
@@ -73,9 +129,22 @@ class _HomePageState extends State<HomePage>{
       final result = json['items'] as List;
       setState((){
         todos = result;
+        isLoading = false;
       });
     }else{
 
+    }
+  }
+
+  Future<void> delete(String id)async{
+    final url = 'https://api.nstack.in/v1/todos/$id';
+    final uri = Uri.parse(url);
+    final response = await http.delete(uri);
+    if(response.statusCode == 200){
+      final filtered = todos.where((elem)=> elem['_id'] != id).toList();
+      setState((){
+        todos = filtered;
+      });
     }
   }
 }
