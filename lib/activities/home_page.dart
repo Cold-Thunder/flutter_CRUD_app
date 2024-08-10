@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:crud_app/activities/add_todos.dart';
+import 'package:crud_app/activities/show_todos.dart';
+import 'package:crud_app/widgets/list_tile.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -33,54 +35,32 @@ class _HomePageState extends State<HomePage>{
         ),
       replacement: RefreshIndicator(
           onRefresh: todosFetching,
-          child: SafeArea(
+          child: Visibility(
+          visible: todos.isNotEmpty,
+          replacement: Center(
+              child: Text('No Todos to show!',
+                  style: TextStyle(
+                      fontSize: 30,
+                      color: Colors.grey
+                  )
+              )
+          ),
               child: ListView.builder(
                   itemCount: todos.length,
                   itemBuilder: (context, index){
                     final todo = todos[index] as Map;
-                    final id = todo['_id'] as String;
-                    return
-                      ListTile(
-                        leading: CircleAvatar(
-                            radius: 20,
-                            backgroundColor: Colors.purple,
-                            child: Text('${index+1}',
-                                style: TextStyle(fontSize: 22, color: Colors.white)
-                            )
-                        ),
-                        title: Text('${todo['title']}'),
-                        titleTextStyle: TextStyle(fontSize: 24, color: Colors.white),
-                        subtitle: Text('${todo['description']}'),
-                        subtitleTextStyle: TextStyle(
-                            fontSize: 16,
-                            color: Colors.white
-                        ),
-                      trailing: PopupMenuButton(
-                        onSelected: (value){
-                          if(value == 'edit'){
-                            editData(todo);
-                          }else if(value == 'delete'){
-                            deleteById(id);
-                          }
-                        },
-                        itemBuilder: (context){
-                          return [
-                            PopupMenuItem(
-                              child: Text('Edit', style: TextStyle(fontSize: 20)),
-                              value: 'edit'
-                            ),
-                            PopupMenuItem(
-                              child: Text('Delete', style: TextStyle(fontSize: 20)),
-                              value: 'delete'
-                            )
-                          ];
-                        }
-                      )
-                    );
+                    return ListTileWidget(
+                        tapFunc: navigatToShow,
+                        editData: editData,
+                        deleteById: deleteById,
+                        index: index,
+                        todo: todo);
                   }
               )
           )
-      )),
+      )
+
+      ),
       floatingActionButton: FloatingActionButton.extended(
           onPressed: (){
             floatingButton();
@@ -90,6 +70,14 @@ class _HomePageState extends State<HomePage>{
       )
     );
   }
+
+  navigatToShow(Map todo){
+    Navigator.push(context, MaterialPageRoute(
+      builder: (context)=>ShowTodos(todo: todo)
+    ));
+  }
+
+
   Future<void> floatingButton() async{
     await Navigator.push(context,
       MaterialPageRoute(builder: (context)=>AddTodos())
